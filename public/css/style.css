@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for a more modern look */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #b3b3b3;
+}
+
+/* Sidebar Navigation Active State */
+.sidebar-link.active {
+    background-color: #ecfdf5; /* green-50 */
+    color: #059669; /* green-600 */
+    font-weight: 600;
+}
+
+.sidebar-link.active i {
+    color: #059669; /* green-600 */
+}
+
+/* Custom focus rings for better accessibility */
+*:focus-visible {
+    outline: 2px solid #34d399; /* green-400 */
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* Card hover effect */
+.card-hover {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Status Badge Styles */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.status-pending { background-color: #fffbeb; color: #d97706; }
+.status-pending::before { background-color: #f59e0b; }
+
+.status-accepted { background-color: #eef2ff; color: #4f46e5; }
+.status-accepted::before { background-color: #6366f1; }
+
+.status-in_progress { background-color: #eff6ff; color: #2563eb; }
+.status-in_progress::before { background-color: #3b82f6; }
+
+.status-completed { background-color: #f0fdf4; color: #16a34a; }
+.status-completed::before { background-color: #22c55e; }
+
+.status-cancelled { background-color: #fef2f2; color: #dc2626; }
+.status-cancelled::before { background-color: #ef4444; }
+
+
+/* Custom transition for sidebar */
+#sidebar.open {
+    transform: translateX(0);
+}
+
+/* For Framer Motion animations */
+.fm-item {
+    opacity: 0;
+    y: 20px;
+}
+
+/* For notification panel */
+#notification-panel {
+    transform-origin: top right;
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
