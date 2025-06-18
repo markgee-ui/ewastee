@@ -114,7 +114,7 @@ E-Taka/
 
 ## Reward System
 
-* Every *completed* e-waste request earns the consumer **KES 50 per point**.
+* Every *completed* e-waste request earns the consumer **KES 100 per point**.
 * Points are tracked in real-time on the **Rewards** dashboard.
 
 ##  Contribution
