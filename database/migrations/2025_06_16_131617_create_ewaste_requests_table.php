@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('consumer_id')->constrained('users')->onDelete('cascade');
             $table->string('type');
             $table->integer('quantity');
-            $table->string('pickup_location');
+            $table->string('location');
             $table->text('description')->nullable();
             $table->enum('status', ['pending', 'accepted', 'completed'])->default('pending');
             $table->timestamps();

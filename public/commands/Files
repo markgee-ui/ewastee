@@ -1,0 +1,6 @@
+php -S localhost:8000 -t public
+//to start inbuilt server
+// To run this script, you need to have PHP installed on your machine.
+ngrok http 8000
+//to run ngrok for etaka app
+you will need to have installed ngrok on your machine
