@@ -35,8 +35,7 @@
         loginTabButton.addEventListener('click', () => switchTab('login'));
         registerTabButton.addEventListener('click', () => switchTab('register'));
 
-      // Handle login form submission
-loginForm.addEventListener('submit', async function(e) {
+    loginForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     loginError.classList.add('hidden');
 
@@ -44,19 +43,9 @@ loginForm.addEventListener('submit', async function(e) {
     const password = document.getElementById('login-password').value;
 
     try {
-        // Get fresh CSRF token right before login
-        console.log('=== FETCHING FRESH TOKEN ===');
-        const tokenResponse = await fetch('/debug-session', {
-            credentials: 'include'
-        });
+        const tokenResponse = await fetch('/debug-session', { credentials: 'include' });
         const tokenData = await tokenResponse.json();
         const freshToken = tokenData.csrf_token;
-        
-        console.log('Fresh token from session:', freshToken);
-        console.log('Meta token:', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-        console.log('Session ID:', tokenData.session_id);
-
-        // Update meta tag with fresh token
         document.querySelector('meta[name="csrf-token"]').setAttribute('content', freshToken);
 
         const response = await fetch('/login', {
@@ -65,7 +54,7 @@ loginForm.addEventListener('submit', async function(e) {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': freshToken,
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'X-Requested-With': 'XMLHttpRequest',
             },
             body: JSON.stringify({
@@ -75,22 +64,14 @@ loginForm.addEventListener('submit', async function(e) {
             })
         });
 
-        console.log('Login response status:', response.status);
-        
-        // Handle 419 specifically
-        if (response.status === 419) {
-            throw new Error('CSRF token mismatch. Please refresh the page and try again.');
-        }
-        
         const text = await response.text();
-        console.log('Raw response:', text);
-        
+
         let data;
         try {
             data = JSON.parse(text);
         } catch (err) {
-            console.error('JSON parse error:', err);
-            throw new Error(`Invalid JSON response: ${text.slice(0, 200)}...`);
+            console.error('Failed to parse JSON:', text);
+            throw new Error(`Invalid JSON response from server.`);
         }
 
         if (!response.ok) {
@@ -98,12 +79,12 @@ loginForm.addEventListener('submit', async function(e) {
         }
 
         console.log('Login successful:', data);
+
         if (data.redirect) {
-            setTimeout(() => {
-                window.location.href = data.redirect;
-            }, 200);
+            console.log('Redirecting to:', data.redirect);
+            window.location.replace(data.redirect);
         } else {
-            window.location.href = '/dashboard';
+            window.location.replace('/dashboard');
         }
 
     } catch (err) {
@@ -113,6 +94,7 @@ loginForm.addEventListener('submit', async function(e) {
     }
 });
 
+
         registerForm.addEventListener('submit', function(e) {
             e.preventDefault();
             registerError.classList.add('hidden');
@@ -120,7 +102,7 @@ loginForm.addEventListener('submit', async function(e) {
 
             fetch('/register', {
                 method: 'POST',
-                credentials: 'include', // ✅ ADD THIS LINE
+                credentials: 'include', //hii ni ya kutuma  sessions laravel
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

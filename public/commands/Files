@@ -4,3 +4,7 @@ php -S localhost:8000 -t public
 ngrok http 8000
 //to run ngrok for etaka app
 you will need to have installed ngrok on your machine
+//mark remember to always change ngrok domains!!!!!!!!!!
+api base
+session doman
+app url

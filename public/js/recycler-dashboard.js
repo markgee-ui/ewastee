@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiBase = 'https://72a8-102-0-16-14.ngrok-free.app/api';
+    const apiBase = 'https://fd57-197-136-42-254.ngrok-free.app/api';
     //const apiBase = window.API_BASE_URL || '/api';
 
 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw err; // allow catch in calling function if needed
             });
     }
-
+// Overview navigation and dynamic content rendering
     document.getElementById('nav-overview').addEventListener('click', (e) => {
     e.preventDefault();
     renderRecyclerOverview(); // Call the new dynamic overview function
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 }
 
-
+// Available requests navigation and job acceptance
     document.getElementById('nav-available_requests').addEventListener('click', (e) => {
         e.preventDefault();
         setPage('Available Requests', '<div>Loading available requests...</div>');
@@ -99,7 +99,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log(data);
                     const html = data.map(r => `
                         <div class="p-3 bg-white rounded-lg shadow mb-2">
-                            <div class="font-semibold">${r.item_description}</div>
+                            <div class="font-medium">${r.type}</div>
+                             <div class="text-gray-400 text-xs">Location: ${r.location}</div>
+                              <div class="text-gray-400 text-xs">Quantity: ${r.quantity}</div>
+
                             <div class="text-gray-500 text-sm">Quantity: ${r.quantity}</div>
                             <div class="text-xs text-gray-400">${new Date(r.created_at).toLocaleString()}</div>
                             <button data-id="${r.id}" class="accept-btn bg-green-600 text-white px-3 py-1 rounded text-sm mt-2">Accept Job</button>
@@ -119,7 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(() => document.getElementById('nav-my_jobs').click());
         }
     });
-
+//my jobs navigation and job management
+    //my jobs navigation and job management
     document.getElementById('nav-my_jobs').addEventListener('click', (e) => {
         e.preventDefault();
         setPage('My Jobs', '<div>Loading your jobs...</div>');
@@ -131,7 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     const html = data.map(job => `
                         <div class="p-4 bg-white rounded-lg border shadow mb-3">
-                            <div class="font-medium">${job.item_description}</div>
+                             <div class="font-medium">${job.type}</div>
+                             <div class="text-gray-400 text-xs">Location: ${job.location}</div>
+                              <div class="text-gray-400 text-xs">Quantity: ${job.quantity}</div>
                             <div class="text-gray-500 text-sm">Status: ${job.status.replace('_', ' ')}</div>
                             <button data-id="${job.id}" class="progress-btn bg-indigo-600 text-white px-2 py-1 rounded text-xs mr-2">In Progress</button>
                             <button data-id="${job.id}" class="complete-btn bg-green-600 text-white px-2 py-1 rounded text-xs">Complete</button>
@@ -143,17 +149,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('progress-btn') || e.target.classList.contains('complete-btn')) {
-            const id = e.target.dataset.id;
-            const action = e.target.classList.contains('progress-btn') ? 'in-progress' : 'complete';
+    if (e.target.classList.contains('progress-btn') || e.target.classList.contains('complete-btn')) {
+        const id = e.target.dataset.id;
+        const action = e.target.classList.contains('progress-btn') ? 'in-progress' : 'complete';
 
-            fetchWithErrorHandling(`${apiBase}/recycler/jobs/${id}/${action}`, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
-            }).then(() => document.getElementById('nav-my_jobs').click());
-        }
-    });
+        fetch(`${apiBase}/recycler/jobs/${id}/${action}`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json', // Tells Laravel to return JSON
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            credentials: 'include', // Important: sends session cookies for authentication
+        })
+        .then(async (response) => {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(() => {
+            document.getElementById('nav-my_jobs').click(); // Reload jobs
+        })
+        .catch(err => {
+            alert(`❌ ${err.message}`);
+            console.error(err);
+        });
+    }
+});
 
+// Payments navigation and earnings display
     document.getElementById('nav-payments').addEventListener('click', (e) => {
         e.preventDefault();
         setPage('Payments', '<div>Loading earnings...</div>');
@@ -167,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setPage('Payments', html);
             });
     });
-
+// Profile management navigation and form handling
    document.getElementById('nav-profile').addEventListener('click', (e) => {
     e.preventDefault();
     setPage('Profile', '<div>Loading profile...</div>');

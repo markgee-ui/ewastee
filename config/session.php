@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Str;
+use PhpOption\None;
 
 return [
 
@@ -156,7 +157,7 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => env('SESSION_DOMAIN',null),
 
     /*
     |--------------------------------------------------------------------------
@@ -168,8 +169,9 @@ return [
     | the cookie from being sent to you when it can't be done securely.
     |
     */
-     'secure' => env('SESSION_SECURE_COOKIE', false),
-    
+     'secure' => env('SESSION_SECURE_COOKIE', true),
+      // Required for cross-site cookies (incognito or cross-origin requests)
+      //'secure' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -199,8 +201,10 @@ return [
     |
     */
 
-    
-     'same_site' => null, // Change from 'lax' to null
+     'same_site' => env('SESSION_SAME_SITE', 'none'),
+     
+     //'same_site' => 'none',  // Required for cross-site cookies (incognito or cross-origin requests)
+                              // Change from 'lax' to null
     /*
     |--------------------------------------------------------------------------
     | Partitioned Cookies

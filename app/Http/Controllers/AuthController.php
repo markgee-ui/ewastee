@@ -53,6 +53,7 @@ class AuthController extends Controller
         $redirect = match ($user->role) {
             'consumer' => '/dashboard/consumer',
             'recycler' => '/dashboard/recycler',
+            'admin'    => '/dashboard/admin',
             default    => '/dashboard',
         };
 

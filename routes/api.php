@@ -55,11 +55,13 @@ Route::middleware('auth')->post('/rewards/redeem', [RewardController::class, 're
 Route::middleware('auth')->prefix('recycler')->group(function () {
     Route::get('/available-jobs', [RecyclerController::class, 'availableJobs']);
     Route::post('/jobs/{id}/accept', [RecyclerController::class, 'acceptJob']);
-    Route::post('/jobs/{id}/in-progress', [RecyclerController::class, 'markInProgress']);
-    Route::post('/jobs/{id}/complete', [RecyclerController::class, 'markComplete']);
+    Route::post('/jobs/{id}/in-progress', [RecyclerController::class, 'markInProgress']); // ✔ fixed
+    Route::post('/jobs/{id}/complete', [RecyclerController::class, 'markComplete']); // ✔ fixed
+
     Route::get('/jobs', [RecyclerController::class, 'myJobs']);
     Route::get('/payments', [RecyclerController::class, 'payments']);
 });
+
 
 // Mpesa Endpoints
 Route::post('/mpesa/stkpush', [MpesaController::class, 'stkPush']);

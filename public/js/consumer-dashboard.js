@@ -35,8 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Re-initialize Lucide icons after updating the DOM
     lucide.createIcons();
 }
-
-//
+   function setPage(title, content) {
+    // Assuming you have a main content element
+    const mainContent = document.getElementById('main-content'); // or whatever your main content element ID is
+    if (mainContent) {
+        mainContent.innerHTML = content;
+    }
+    
+    // Optional: Update page title or breadcrumb
+    document.title = title; // or update a breadcrumb element
+}
+//       
     function attachNavEvents() {
         document.getElementById('nav-overview').addEventListener('click', e => {
             e.preventDefault();
@@ -83,59 +92,56 @@ document.addEventListener('DOMContentLoaded', () => {
 //function to render the overview section
    
 function renderOverview() {
+    // Show loading state
+    setPage('Overview', '<div>Loading overview...</div>');
+    
     Promise.all([
         fetchConsumerRequests(),
         fetchRewards(),
-        fetch('/api/profile').then(res => res.json()) // <-- get current user info
+        fetch('/api/profile', {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+        })
     ])
     .then(([requests, rewards, user]) => {
         const pending = requests.filter(r => r.status === 'pending').length;
         const completed = requests.filter(r => r.status === 'completed').length;
         const total = requests.length;
         const rewardPoints = rewards.length ? rewards[0].points : 0;
-
-        mainContent.innerHTML = `
+        
+        setPage('Overview', `
             <div class="space-y-6">
-                <div class="fm-item">
-                    <h2 class="text-2xl font-bold text-gray-800" data-translate-key="welcome_back">${translations[currentLang].welcome_back}, ${user.name}!</h2>
-                </div>
+                <div class="text-2xl font-bold text-gray-800">Welcome back, ${user.name}!</div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="fm-item bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                        <div class="p-3 rounded-full bg-blue-100"><i data-lucide="list-checks" class="text-blue-600"></i></div>
-                        <div>
-                            <p class="text-sm text-gray-500" data-translate-key="total_requests">${translations[currentLang].total_requests}</p>
-                            <p class="text-2xl font-bold text-gray-900">${total}</p>
-                        </div>
+                    <div class="p-4 bg-white rounded shadow border text-center">
+                        <div class="text-blue-500 text-lg">${total}</div>
+                        <div class="text-gray-500 text-sm">Total Requests</div>
                     </div>
-                    <div class="fm-item bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                        <div class="p-3 rounded-full bg-yellow-100"><i data-lucide="loader" class="text-yellow-600"></i></div>
-                        <div>
-                            <p class="text-sm text-gray-500" data-translate-key="pending_requests">${translations[currentLang].pending_requests}</p>
-                            <p class="text-2xl font-bold text-gray-900">${pending}</p>
-                        </div>
+                    <div class="p-4 bg-white rounded shadow border text-center">
+                        <div class="text-yellow-500 text-lg">${pending}</div>
+                        <div class="text-gray-500 text-sm">Pending Requests</div>
                     </div>
-                    <div class="fm-item bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                        <div class="p-3 rounded-full bg-green-100"><i data-lucide="award" class="text-green-600"></i></div>
-                        <div>
-                            <p class="text-sm text-gray-500" data-translate-key="my_reward_points">${translations[currentLang].my_reward_points}</p>
-                            <p class="text-2xl font-bold text-gray-900">${rewardPoints}</p>
-                        </div>
+                    <div class="p-4 bg-white rounded shadow border text-center">
+                        <div class="text-green-500 text-lg">${rewardPoints}</div>
+                        <div class="text-gray-500 text-sm">Reward Points</div>
                     </div>
                 </div>
-
-                <div class="fm-item bg-white p-6 rounded-xl border border-gray-200 shadow-sm mt-8">
-                    <h3 class="text-lg font-semibold mb-4" data-translate-key="my_requests">${translations[currentLang].my_requests}</h3>
-                    ${renderRequestTable(requests)}
+                
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mt-8">
+                    <h3 class="text-lg font-semibold mb-4">My Recent Requests</h3>
+                    ${renderRequestTable(requests.slice(0, 5))}
                 </div>
             </div>
-        `;
-
-        translatePage(currentLang);
-        lucide.createIcons();
+        `);
     })
     .catch(err => {
-        console.error(err);
-        mainContent.innerHTML = `<div class="text-red-500 text-center mt-6">Failed to load overview data.</div>`;
+        console.error('Error loading overview:', err);
+        setPage('Overview', '<div class="text-red-500 text-center mt-6">Failed to load overview data.</div>');
     });
 }
 

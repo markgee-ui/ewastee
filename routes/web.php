@@ -73,7 +73,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/available-jobs', [RecyclerController::class, 'availableJobs']);
         Route::get('/jobs', [RecyclerController::class, 'myJobs']);
         Route::post('/jobs/{id}/accept', [RecyclerController::class, 'acceptJob']);
-        Route::post('/jobs/{id}/complete', [RecyclerController::class, 'completeJob']);
+        Route::post('/jobs/{id}/complete', [RecyclerController::class, 'markComplete']);
+        Route::post('/jobs/{id}/in-progress', [RecyclerController::class, 'markInProgress']);
         Route::get('/payments', function (Request $request) {
             return response()->json([
                 'total_earned' => 2750, // Example data
@@ -89,6 +90,8 @@ Route::middleware('auth')->group(function () {
 // Mpesa (No auth because these are callbacks)
 Route::post('/mpesa/stkpush', [MpesaController::class, 'stkPush']);
 
+
+
 // for debugging purposes, you can add a route to check session and CSRF token
 Route::get('/debug-session', function(Request $request) {
     return response()->json([
@@ -97,4 +100,10 @@ Route::get('/debug-session', function(Request $request) {
         'session_data' => session()->all(),
         'has_csrf' => session()->has('_token'),
     ]);
+});
+
+
+//admin
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/dashboard/admin', fn () => view('dashboard-admin'))->name('admin.dashboard');
 });
