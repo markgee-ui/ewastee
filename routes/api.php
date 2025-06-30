@@ -7,7 +7,9 @@ use App\Http\Controllers\EwasteRequestController;
 use App\Http\Controllers\RewardController;
 use App\Http\Controllers\MpesaController;
 use App\Http\Controllers\RecyclerController;
-
+use App\Http\Controllers\AdminRequestController;
+use App\Http\Controllers\AdminOverviewController;
+use App\Http\Controllers\ChatbotController;
 // AUTHENTICATED API ROUTES
 Route::middleware('auth')->group(function () {
     // Profile Endpoints
@@ -45,7 +47,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->get('/rewards', function (Request $request) {
     return response()->json([
         'rewards' => [
-            ['user_id' => $request->user()->id, 'points' => 100] // Example or from DB
+            ['user_id' => $request->user()->id, 'points' => 100] 
         ]
     ]);
 });
@@ -55,8 +57,8 @@ Route::middleware('auth')->post('/rewards/redeem', [RewardController::class, 're
 Route::middleware('auth')->prefix('recycler')->group(function () {
     Route::get('/available-jobs', [RecyclerController::class, 'availableJobs']);
     Route::post('/jobs/{id}/accept', [RecyclerController::class, 'acceptJob']);
-    Route::post('/jobs/{id}/in-progress', [RecyclerController::class, 'markInProgress']); // ✔ fixed
-    Route::post('/jobs/{id}/complete', [RecyclerController::class, 'markComplete']); // ✔ fixed
+    Route::post('/jobs/{id}/in-progress', [RecyclerController::class, 'markInProgress']); 
+    Route::post('/jobs/{id}/complete', [RecyclerController::class, 'markComplete']); 
 
     Route::get('/jobs', [RecyclerController::class, 'myJobs']);
     Route::get('/payments', [RecyclerController::class, 'payments']);
@@ -67,3 +69,18 @@ Route::middleware('auth')->prefix('recycler')->group(function () {
 Route::post('/mpesa/stkpush', [MpesaController::class, 'stkPush']);
 Route::post('/mpesa/result', [MpesaController::class, 'handleResult']);
 Route::post('/mpesa/timeout', [MpesaController::class, 'handleTimeout']);
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/api/admin/requests', [AdminRequestController::class, 'index']);
+    Route::delete('/api/admin/requests/{id}', [AdminRequestController::class, 'destroy']);
+});
+Route::post('/admin/change-password', [AdminRequestController::class, 'changePassword']);
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/overview', [AdminOverviewController::class, 'index']);
+});
+Route::get('/debug-user', function () {
+    return auth()->user();
+});
+Route::post('/chatbot/message', [ChatbotController::class, 'handle']);
+Route::post('/chatbot/message', [ChatbotController::class, 'chat']);

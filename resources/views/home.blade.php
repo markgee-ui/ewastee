@@ -61,43 +61,48 @@
                 </div>
             </section>
 
-            <section id="services" class="py-20 bg-white">
-                <div class="container mx-auto px-6">
-                    <div class="text-center mb-12">
-                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Our Services</h2>
-                        <p class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">A seamless process for consumers, recyclers, and our planet.</p>
-                    </div>
-                    <div class="grid md:grid-cols-3 gap-10 text-center">
-                        <div class="p-8 bg-gray-50 rounded-xl border border-gray-200">
-                            <div class="flex justify-center mb-4">
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                                    <i data-lucide="file-pen-line" class="text-green-600 w-8 h-8"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">1. Request Pickup</h3>
-                            <p class="text-gray-600">Register as a consumer and submit a request detailing your e-waste. It's quick, easy, and free.</p>
-                        </div>
-                        <div class="p-8 bg-gray-50 rounded-xl border border-gray-200">
-                            <div class="flex justify-center mb-4">
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                                    <i data-lucide="truck" class="text-green-600 w-8 h-8"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">2. We Collect</h3>
-                            <p class="text-gray-600">Our certified recyclers view and accept your request, scheduling a convenient pickup from your location.</p>
-                        </div>
-                        <div class="p-8 bg-gray-50 rounded-xl border border-gray-200">
-                            <div class="flex justify-center mb-4">
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                                    <i data-lucide="award" class="text-green-600 w-8 h-8"></i>
-                                </div>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">3. Get Rewarded</h3>
-                            <p class="text-gray-600">Once your e-waste is processed, you earn reward points that can be redeemed for exciting offers.</p>
-                        </div>
+           <section id="services" class="py-20 bg-white">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Our Services</h2>
+            <p class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">
+                A seamless process for consumers, recyclers, and our planet.
+            </p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-10 text-center">
+            <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ease-in-out">
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                        <i data-lucide="file-pen-line" class="text-green-600 w-8 h-8"></i>
                     </div>
                 </div>
-            </section>
+                <h3 class="text-xl font-bold mb-2">1. Request Pickup</h3>
+                <p class="text-gray-600">Register as a consumer and submit a request detailing your e-waste. It's quick, easy, and free.</p>
+            </div>
+
+            <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ease-in-out">
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                        <i data-lucide="truck" class="text-green-600 w-8 h-8"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2">2. We Collect</h3>
+                <p class="text-gray-600">Our certified recyclers view and accept your request, scheduling a convenient pickup from your location.</p>
+            </div>
+
+            <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ease-in-out">
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                        <i data-lucide="award" class="text-green-600 w-8 h-8"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2">3. Get Rewarded</h3>
+                <p class="text-gray-600">Once your e-waste is processed, you earn reward points that can be redeemed for exciting offers.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 
             <section id="contact" class="py-20 bg-gray-50">
                 <div class="container mx-auto px-6">
@@ -200,5 +205,88 @@
       lucide.createIcons();
     </script>
     <script type="module"  src="{{ asset('js/main.js') }}"></script>
+    <!-- Chatbot Toggle Button -->
+<button id="chat-toggle" class="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-full shadow-lg z-50">
+    💬
+</button>
+
+<!-- Chatbot Box -->
+<div id="chatbot" class="fixed bottom-20 right-4 w-80 bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden z-50 hidden">
+    <div class="bg-green-600 text-white px-4 py-2 font-semibold flex justify-between items-center">
+        <span>Etaka Assistant</span>
+        <button id="chat-close" class="text-white">&times;</button>
+    </div>
+    <div id="chat-messages" class="p-3 h-64 overflow-y-auto text-sm space-y-2">
+        <div class="text-gray-600">👋 Jambo! How can I assist you today?</div>
+    </div>
+    <form id="chat-form" class="flex border-t border-gray-200">
+        <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 px-3 py-2 focus:outline-none text-sm">
+        <button type="submit" class="px-4 bg-green-600 text-white">Send</button>
+    </form>
+</div>
+<script>
+document.getElementById('chat-toggle').addEventListener('click', () => {
+    document.getElementById('chatbot').classList.remove('hidden');
+    document.getElementById('chat-toggle').classList.add('hidden');
+});
+
+document.getElementById('chat-close').addEventListener('click', () => {
+    document.getElementById('chatbot').classList.add('hidden');
+    document.getElementById('chat-toggle').classList.remove('hidden');
+});
+</script>
+
+<script>document.getElementById('chat-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const chatBox = document.getElementById('chat-messages');
+
+    const userMessage = document.createElement('div');
+    userMessage.className = 'text-right text-gray-800';
+    userMessage.textContent = '🧑 ' + message;
+    chatBox.appendChild(userMessage);
+
+    input.value = '';
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // Show loading...
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'text-gray-400';
+    loadingMsg.textContent = '🤖 Typing...';
+    chatBox.appendChild(loadingMsg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const response = await fetch('/api/chatbot/message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        loadingMsg.remove();
+
+        const botMessage = document.createElement('div');
+        botMessage.className = 'text-gray-600 whitespace-pre-wrap';
+        botMessage.textContent = '🤖 ' + (data.reply || 'No response.');
+        chatBox.appendChild(botMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (error) {
+        loadingMsg.remove();
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'text-red-500';
+        errorMsg.textContent = '⚠️ Failed to fetch response.';
+        chatBox.appendChild(errorMsg);
+    }
+});
+</script>
+
 </body>
 </html>

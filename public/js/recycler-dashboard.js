@@ -1,6 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiBase = 'https://fd57-197-136-42-254.ngrok-free.app/api';
+    const apiBase = 'https://7515-102-0-16-14.ngrok-free.app/api';
     //const apiBase = window.API_BASE_URL || '/api';
+     let user = null;
+    fetchWithErrorHandling(`${apiBase}/profile`, {
+    credentials: 'include',
+    headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json'
+    }
+}).then(profile => {
+    user = profile; // ✅ Now available globally
+    document.getElementById('nav-overview').click(); // Safe to render
+}).catch(() => {
+    setPage('Error', '<div class="text-red-600">❌ Failed to load user. Please log in again.</div>');
+});
 
 
     const sidebarLinks = [
@@ -63,10 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     ]).then(([myJobs, availableJobs]) => {
         const completedCount = myJobs.filter(r => r.status === 'completed').length;
+        
 
         setPage('Overview', `
             <div class="space-y-6">
-                <div class="text-2xl font-bold text-gray-800">Welcome back, Recycler!</div>
+               <div class="text-2xl font-bold text-gray-800">Welcome back, ${user.name}!</div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="p-4 bg-white rounded shadow border text-center">
                         <div class="text-blue-500 text-lg">${availableJobs.length}</div>

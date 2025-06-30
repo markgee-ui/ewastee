@@ -10,6 +10,9 @@ use App\Http\Controllers\EwasteRequestController;
 use App\Http\Controllers\MpesaController;
 use App\Http\Controllers\RewardController;
 use App\Http\Controllers\RecyclerController;
+use App\Http\Controllers\AdminRequestController;
+use App\Http\Controllers\AdminOverviewController;
+use App\Http\Controllers\ChatbotController;
 
 // Public Web Routes
 Route::get('/', fn () => view('home'))->name('home');
@@ -107,3 +110,34 @@ Route::get('/debug-session', function(Request $request) {
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard/admin', fn () => view('dashboard-admin'))->name('admin.dashboard');
 });
+
+Route::get('/api/admin/users', function () {
+    return \App\Models\User::select('id', 'name', 'email', 'role', 'created_at')->get();
+});
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/api/users', fn () => \App\Models\User::all());
+    Route::put('/api/users/{id}', function (Request $request, $id) {
+        $user = \App\Models\User::findOrFail($id);
+        $user->update($request->only('name', 'email', 'role'));
+        return response()->json(['message' => 'User updated successfully']);
+    });
+    Route::delete('/api/users/{id}', function ($id) {
+        \App\Models\User::findOrFail($id)->delete();
+        return response()->json(['message' => 'User deleted successfully']);
+    });
+});
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/api/admin/requests', [AdminRequestController::class, 'index']);
+    Route::delete('/api/admin/requests/{id}', [AdminRequestController::class, 'destroy']);
+});
+Route::delete('/admin/requests/{id}', [AdminRequestController::class, 'deleteRequest']);
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::post('/api/admin/change-password', [AdminRequestController::class, 'changePassword']);
+});
+
+Route::middleware(['auth', 'admin'])->get('/api/admin/overview', [AdminOverviewController::class, 'overview']);
+//Route::post('/chatbot/message', [ChatbotController::class, 'chat']);
+Route::post('/chatbot/message', [ChatbotController::class, 'handle']);
+

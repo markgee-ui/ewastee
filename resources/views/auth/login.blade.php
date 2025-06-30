@@ -33,7 +33,7 @@
                     @csrf
                     <div>
                         <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" id="login-email" name="email" required class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" placeholder="you@example.com">
+                        <input type="email" id="login-email" name="email" required class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" placeholder="etaka@gmail.com">
                     </div>
                     <div>
                         <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
@@ -56,6 +56,11 @@
                         <label for="register-email" class="block text-sm font-medium text-gray-700">Email</label>
                         <input type="email" id="register-email" name="email" required class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
                     </div>
+                     <div>
+                      <label for="register-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                     <input type="text" id="register-phone" name="phone" required class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                     </div>
+
                     <div>
                         <label for="register-password" class="block text-sm font-medium text-gray-700">Password</label>
                         <input type="password" id="register-password" name="password" required class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">

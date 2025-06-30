@@ -111,6 +111,7 @@
                 body: JSON.stringify({
                     name: document.getElementById('register-name').value,
                     email: document.getElementById('register-email').value,
+                    phone: document.getElementById('register-phone').value,
                     password: document.getElementById('register-password').value,
                     role: document.getElementById('register-role').value
                 })

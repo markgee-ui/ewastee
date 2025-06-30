@@ -42,9 +42,16 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <button id="lang-toggle" class="font-semibold text-sm text-gray-600 hover:text-green-600 p-2 rounded-md hover:bg-gray-100">EN / SW</button>
-                    <div id="notification-bell" class="relative cursor-pointer">
+                  <div id="notification-bell" class="relative cursor-pointer">
                         <i data-lucide="bell" class="text-gray-600"></i>
                         <span id="notification-dot" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
+                    </div>
+                                        <div class="flex items-center space-x-3">
+                        <div id="user-avatar" class="w-9 h-9 rounded-full bg-green-200 text-green-700 font-bold flex items-center justify-center text-sm"></div>
+                        <div>
+                            <p id="user-name" class="font-semibold text-sm text-gray-800"></p>
+                            <p id="user-role" class="text-xs text-gray-500 capitalize">Recycler</p>
+                        </div>
                     </div>
                 </div>
             </header>
