@@ -13,7 +13,7 @@ use App\Http\Controllers\RecyclerController;
 use App\Http\Controllers\AdminRequestController;
 use App\Http\Controllers\AdminOverviewController;
 use App\Http\Controllers\ChatbotController;
-
+use App\Http\Controllers\PaymentController;
 // Public Web Routes
 Route::get('/', fn () => view('home'))->name('home');
 Route::get('/login', fn () => view('auth.login'))->name('login');
@@ -141,3 +141,6 @@ Route::middleware(['auth', 'admin'])->get('/api/admin/overview', [AdminOverviewC
 //Route::post('/chatbot/message', [ChatbotController::class, 'chat']);
 Route::post('/chatbot/message', [ChatbotController::class, 'handle']);
 
+Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
+Route::post('/mpesa/callback', [PaymentController::class, 'mpesaCallback']);
+Route::get('/api/payment/status/{requestId}', [PaymentController::class, 'checkPaymentStatus']);

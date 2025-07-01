@@ -1,4 +1,6 @@
 import { translations, currentLang,translatePage } from './translation.js';
+let previousCompletedRequestIds = new Set();
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const apiBase = '/api';
@@ -78,70 +80,244 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function fetchConsumerRequests() {
-        return fetch(`${apiBase}/requests`)
-            .then(res => res.json())
-            .then(data => data.requests || []);
-    }
+   function fetchConsumerRequests(showNotification = true) {
+    return fetch(`${apiBase}/requests`)
+        .then(res => res.json())
+        .then(data => {
+            const requests = data.requests || [];
+            
+            if (showNotification) {
+                const newCompletions = requests.filter(r => 
+                    r.status === 'completed' && !previousCompletedRequestIds.has(r.id)
+                );
+
+                if (newCompletions.length > 0) {
+                    newCompletions.forEach(r => {
+                        showNotificationMessage(`Your request for ${r.type} has been completed. Please proceed to payment.`);
+                        previousCompletedRequestIds.add(r.id);
+                    });
+                    document.getElementById('notification-dot')?.classList.remove('hidden');
+                }
+
+                // Update completed request tracker
+                requests
+                    .filter(r => r.status === 'completed')
+                    .forEach(r => previousCompletedRequestIds.add(r.id));
+            }
+
+            return requests;
+        });
+}
+
 
     function fetchRewards() {
         return fetch(`${apiBase}/rewards`)
             .then(res => res.json())
             .then(data => data.rewards || []);
     }
+
+       function fetchNotifications() {
+        fetch('/api/notifications')
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('notification-list');
+                const dot = document.getElementById('notification-dot');
+                list.innerHTML = '';
+                if (data.notifications && data.notifications.length > 0) {
+                    dot.classList.remove('hidden');
+                    data.notifications.forEach(n => {
+                        const item = document.createElement('div');
+                        item.className = "bg-green-50 px-3 py-2 rounded text-sm text-gray-700 border border-green-200";
+                        item.textContent = n.message;
+                        list.appendChild(item);
+                    });
+                } else {
+                    dot.classList.add('hidden');
+                    list.innerHTML = '<p class="text-gray-500 text-sm">No notifications.</p>';
+                }
+            });
+    }
+    function showNotificationMessage(message) {
+    const list = document.getElementById('notification-list');
+    const notification = document.createElement('div');
+    notification.className = "bg-green-50 text-green-700 p-3 rounded-lg shadow-sm border border-green-200 text-sm";
+    notification.innerHTML = `<span>${message}</span>`;
+    list.prepend(notification);
+}
+function pollPaymentStatus(requestId) {
+    let attempts = 0;
+    const maxAttempts = 10; // check for 30s
+
+    const interval = setInterval(() => {
+        attempts++;
+        fetch(`/api/payment/status/${requestId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.paid) {
+                    clearInterval(interval);
+                    showNotificationMessage("✅ Payment received successfully!");
+                    renderOverview(); // Refresh dashboard
+                }
+            });
+
+        if (attempts >= maxAttempts) {
+            clearInterval(interval);
+        }
+    }, 3000);
+}
+
 //function to render the overview section
    
-function renderOverview() {
-    // Show loading state
-    setPage('Overview', '<div>Loading overview...</div>');
-    
-    Promise.all([
-        fetchConsumerRequests(),
-        fetchRewards(),
-        fetch('/api/profile', {
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
+    function renderOverview() {
+        setPage('Overview', '<div>Loading overview...</div>');
+        Promise.all([
+            fetchConsumerRequests(true),
+            fetchRewards(),
+            fetch('/api/profile', {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            }).then(res => {
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.json();
+            })
+        ]).then(([requests, rewards, user]) => {
+            const pending = requests.filter(r => r.status === 'pending').length;
+            const completed = requests.filter(r => r.status === 'completed').length;
+            const total = requests.length;
+            const rewardPoints = rewards.length ? rewards[0].points : 0;
+            let html = `
+                <div class="space-y-6">
+                    <div class="text-2xl font-bold text-gray-800">Welcome back, ${user.name}!</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-4 bg-white rounded shadow border text-center">
+                            <div class="text-blue-500 text-lg">${total}</div>
+                            <div class="text-gray-500 text-sm">Total Requests</div>
+                        </div>
+                        <div class="p-4 bg-white rounded shadow border text-center">
+                            <div class="text-yellow-500 text-lg">${pending}</div>
+                            <div class="text-gray-500 text-sm">Pending Requests</div>
+                        </div>
+                        <div class="p-4 bg-white rounded shadow border text-center">
+                            <div class="text-green-500 text-lg">${rewardPoints}</div>
+                            <div class="text-gray-500 text-sm">Reward Points</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mt-8">
+                        <h3 class="text-lg font-semibold mb-4">My Recent Requests</h3>
+                        ${renderRequestTable(requests.slice(0, 5))}
+                    </div>
+            `;
+
+            const completedRequest = requests.find(r => r.status === 'completed');
+            const requestId = completedRequest?.id;
+            if (completedRequest) {
+                html += `
+                    <div class="mt-6 bg-white p-4 rounded shadow border text-center">
+                        <p class="text-gray-700 font-semibold mb-2">You have a completed request.</p>
+                        <button id="make-payment" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition">
+                            Proceed to Payment
+                        </button>
+                    </div>
+                `;
             }
-        }).then(res => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            return res.json();
-        })
-    ])
-    .then(([requests, rewards, user]) => {
-        const pending = requests.filter(r => r.status === 'pending').length;
-        const completed = requests.filter(r => r.status === 'completed').length;
-        const total = requests.length;
-        const rewardPoints = rewards.length ? rewards[0].points : 0;
-        
-        setPage('Overview', `
-            <div class="space-y-6">
-                <div class="text-2xl font-bold text-gray-800">Welcome back, ${user.name}!</div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="p-4 bg-white rounded shadow border text-center">
-                        <div class="text-blue-500 text-lg">${total}</div>
-                        <div class="text-gray-500 text-sm">Total Requests</div>
-                    </div>
-                    <div class="p-4 bg-white rounded shadow border text-center">
-                        <div class="text-yellow-500 text-lg">${pending}</div>
-                        <div class="text-gray-500 text-sm">Pending Requests</div>
-                    </div>
-                    <div class="p-4 bg-white rounded shadow border text-center">
-                        <div class="text-green-500 text-lg">${rewardPoints}</div>
-                        <div class="text-gray-500 text-sm">Reward Points</div>
-                    </div>
+            html += '</div>';
+            setPage('Overview', html);
+            setTimeout(() => {
+                const btn = document.getElementById("make-payment");
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        renderPaymentOptions(requestId);//paases requestId here
+                        // TODO: redirect to actual payment logic or page
+                    });
+                }
+            }, 100);
+        }).catch(err => {
+            console.error('Error loading overview:', err);
+            setPage('Overview', '<div class="text-red-500 text-center mt-6">Failed to load overview data.</div>');
+        });
+    }
+    function renderPaymentOptions(requestId) {
+    const html = `
+        <div class="max-w-xl mx-auto mt-10 bg-white rounded-xl shadow-lg border border-gray-200 p-8 space-y-6">
+            <h2 class="text-2xl font-bold text-center text-gray-800">Select Payment Method</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+                <div class="flex flex-col items-center justify-center p-6 bg-green-50 border border-green-200 rounded-xl transition">
+                    <i data-lucide="smartphone" class="w-8 h-8 text-green-600 mb-3"></i>
+                    <input 
+                        type="tel" 
+                        id="mpesa-phone" 
+                        placeholder="Enter M-Pesa Number (2547XXXXXXX)" 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 mb-3"
+                    />
+                    <button id="mpesa-button" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-700 transition">
+                        Pay with M-Pesa
+                    </button>
                 </div>
-                
-                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mt-8">
-                    <h3 class="text-lg font-semibold mb-4">My Recent Requests</h3>
-                    ${renderRequestTable(requests.slice(0, 5))}
-                </div>
+
+                <button id="airtime-button" class="flex flex-col items-center justify-center p-6 bg-yellow-50 border border-yellow-200 rounded-xl hover:bg-yellow-100 transition">
+                    <i data-lucide="phone-call" class="w-8 h-8 text-yellow-600 mb-2"></i>
+                    <span class="text-yellow-800 font-semibold">Airtime</span>
+                </button>
+
+                <button id="card-button" class="flex flex-col items-center justify-center p-6 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition">
+                    <i data-lucide="credit-card" class="w-8 h-8 text-blue-600 mb-2"></i>
+                    <span class="text-blue-800 font-semibold">Card</span>
+                </button>
             </div>
-        `);
+
+            <div class="text-center pt-4">
+                <button id="back-button" class="text-sm text-gray-500 hover:underline">&larr; Back to Overview</button>
+            </div>
+        </div>
+    `;
+
+    setPage("Payment", html);
+    lucide.createIcons();
+
+    // Handle M-Pesa click
+  document.getElementById("mpesa-button").addEventListener("click", () => {
+    const phone = document.getElementById("mpesa-phone").value.trim();
+
+    // Accepts numbers starting with 07, 01, or already normalized 2547/2541
+    const valid = phone.match(/^((07\d{8})|(01\d{8})|(2547\d{8})|(2541\d{8}))$/);
+    if (!valid) {
+        alert("Please enter a valid Kenyan Safaricom number (e.g., 0712345678 or 0112345678)");
+        return;
+    }
+
+    fetch("/api/payment/initiate", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ method: "mpesa", phone, amount: 1, request_id: requestId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "M-Pesa STK push initiated.");
+        pollPaymentStatus(requestId);
     })
     .catch(err => {
-        console.error('Error loading overview:', err);
-        setPage('Overview', '<div class="text-red-500 text-center mt-6">Failed to load overview data.</div>');
+        console.error(err);
+        alert("Failed to send STK push. Try again later.");
+    });
+});
+
+
+    document.getElementById("airtime-button").addEventListener("click", () => {
+        alert("Airtime selected. Coming soon...");
+    });
+
+    document.getElementById("card-button").addEventListener("click", () => {
+        alert("Card selected. Coming soon...");
+    });
+
+    document.getElementById("back-button").addEventListener("click", () => {
+        renderOverview();
     });
 }
 
@@ -480,14 +656,36 @@ function renderRewards() {
             mainContent.innerHTML = `<div class="text-red-500 text-center">Failed to load profile data.</div>`;
         });
 }
-
-
+  function handlePayment(method) {
+    fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ method })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "Payment initiated.");
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Payment failed. Please try again.");
+    });
+}
 
 
     document.getElementById('notification-bell')?.addEventListener('click', () => {
         const panel = document.getElementById('notification-panel');
         panel.classList.toggle('hidden');
     });
+    document.getElementById('clear-notifications')?.addEventListener('click', () => {
+    document.getElementById('notification-list').innerHTML = '';
+    document.getElementById('notification-dot')?.classList.add('hidden');
+});
+
 
     document.getElementById('logout-button')?.addEventListener('click', () => {
         fetch('/logout', { method: 'POST' }).then(() => window.location.href = '/login');

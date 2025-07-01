@@ -10,6 +10,7 @@ use App\Http\Controllers\RecyclerController;
 use App\Http\Controllers\AdminRequestController;
 use App\Http\Controllers\AdminOverviewController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\PaymentController;
 // AUTHENTICATED API ROUTES
 Route::middleware('auth')->group(function () {
     // Profile Endpoints
@@ -84,3 +85,8 @@ Route::get('/debug-user', function () {
 });
 Route::post('/chatbot/message', [ChatbotController::class, 'handle']);
 Route::post('/chatbot/message', [ChatbotController::class, 'chat']);
+Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
+
+Route::post('/mpesa/callback', [PaymentController::class, 'mpesaCallback']);
+Route::get('/api/payment/status/{requestId}', [PaymentController::class, 'checkPaymentStatus']);
+

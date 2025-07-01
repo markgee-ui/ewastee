@@ -39,33 +39,40 @@ class EwasteRequestController extends Controller
         return response()->json(['message' => 'Request submitted successfully.', 'request' => $ewaste]);
     }
 
-    // ✅ NEW: Recycler updates the status of an e-waste request
-    public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:pending,accepted,completed',
-        ]);
+    //  NEW: Recycler updates the status of an e-waste request
+ public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|in:pending,accepted,completed',
+    ]);
 
-        $ewasteRequest = EwasteRequest::findOrFail($id);
+    $ewasteRequest = EwasteRequest::findOrFail($id);
 
-        // ✅ Only allow recyclers to perform this action
-        if (Auth::user()->role !== 'recycler') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        // ✅ Update the status
-        $ewasteRequest->status = $request->status;
-        $ewasteRequest->save();
-
-        // ✅ Award rewards if marked as completed
-        if ($request->status === 'completed') {
-            $consumer = $ewasteRequest->consumer; // requires ->consumer() relationship on the model
-            if ($consumer) {
-                $consumer->rewards += 1;
-                $consumer->save();
-            }
-        }
-
-        return response()->json(['message' => 'Request status updated successfully.']);
+    // Only recyclers can update status
+    if (Auth::user()->role !== 'recycler') {
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
+
+    $ewasteRequest->status = $request->status;
+    $ewasteRequest->save();
+
+    $broadcast = false;
+
+    if ($request->status === 'completed') {
+        $consumer = $ewasteRequest->consumer; // Assuming relationship: consumer()
+        if ($consumer) {
+            $consumer->rewards += 1;
+            $consumer->save();
+            $broadcast = true;
+        }
+    }
+
+    return response()->json([
+        'message' => 'Request status updated successfully.',
+        'broadcast_notification' => $broadcast,
+        'consumer_id' => $ewasteRequest->consumer_id,
+        'request_id' => $ewasteRequest->id,
+    ]);
+}
+
 }

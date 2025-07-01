@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiBase = 'https://7515-102-0-16-14.ngrok-free.app/api';
+    const apiBase = 'https://bc38-197-248-166-169.ngrok-free.app/api';
     //const apiBase = window.API_BASE_URL || '/api';
      let user = null;
     fetchWithErrorHandling(`${apiBase}/profile`, {
