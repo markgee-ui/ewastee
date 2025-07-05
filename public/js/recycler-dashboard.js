@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiBase = 'https://bc38-197-248-166-169.ngrok-free.app/api';
+    const apiBase = 'https://81fd-102-166-136-59.ngrok-free.app/api';
     //const apiBase = window.API_BASE_URL || '/api';
      let user = null;
     fetchWithErrorHandling(`${apiBase}/profile`, {
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Accept': 'application/json'
     }
 }).then(profile => {
-    user = profile; // ✅ Now available globally
+    user = profile; //  available globally
     document.getElementById('nav-overview').click(); // Safe to render
 }).catch(() => {
     setPage('Error', '<div class="text-red-600">❌ Failed to load user. Please log in again.</div>');

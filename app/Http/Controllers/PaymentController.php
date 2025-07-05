@@ -118,7 +118,7 @@ class PaymentController extends Controller
         abort(500, 'Failed to generate M-Pesa access token.');
     }
 
-    public function mpesaCallback(Request $request)
+   public function mpesaCallback(Request $request)
 {
     $data = $request->all();
     \Log::info('M-Pesa Callback Received:', $data);
@@ -127,7 +127,7 @@ class PaymentController extends Controller
     if (!$stk) return response()->json(['message' => 'Invalid callback'], 400);
 
     $resultCode = $stk['ResultCode'];
-    $requestId = $stk['CheckoutRequestID'] ?? null;
+    $requestId = $stk['CallbackMetadata']['Item'][0]['Value']; // optional debug only
 
     if ($resultCode == 0) {
         $items = $stk['CallbackMetadata']['Item'];
@@ -135,24 +135,29 @@ class PaymentController extends Controller
         $mpesaReceipt = collect($items)->firstWhere('Name', 'MpesaReceiptNumber')['Value'] ?? null;
         $phone = collect($items)->firstWhere('Name', 'PhoneNumber')['Value'] ?? null;
 
-        // Save the payment to DB
-        \App\Models\Payment::create([
-            'request_id' => $stk['MerchantRequestID'], // or map this using AccountReference
-            'phone' => $phone,
-            'mpesa_receipt' => $mpesaReceipt,
-            'amount' => $amount,
-            'status' => 'success',
-        ]);
+        // Use AccountReference instead of MerchantRequestID
+        $originalRequestId = $stk['CheckoutRequestID']; // <- used for tracking STK
+        $ewasteRequestId = $stk['AccountReference'] ?? null;
 
-        // Mark the e-waste request as paid
-        \App\Models\EwasteRequest::where('id', $stk['MerchantRequestID'])->update([
-            'payment_status' => 'paid'
-        ]);
+        if ($ewasteRequestId) {
+            \App\Models\Payment::create([
+                'request_id' => $ewasteRequestId,
+                'phone' => $phone,
+                'mpesa_receipt' => $mpesaReceipt,
+                'amount' => $amount,
+                'status' => 'Completed',
+            ]);
+
+            \App\Models\EwasteRequest::where('id', $ewasteRequestId)->update([
+                'payment_status' => 'paid'
+            ]);
+        }
     }
 
     return response()->json(['message' => 'Callback processed'], 200);
 }
- public function checkPaymentStatus($requestId)
+
+public function checkPaymentStatus($requestId)
 {
     $payment = \App\Models\Payment::where('request_id', $requestId)->first();
 
@@ -162,5 +167,6 @@ class PaymentController extends Controller
 
     return response()->json(['paid' => false]);
 }
+
 
 }

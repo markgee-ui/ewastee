@@ -27,7 +27,7 @@ body {
 
 /* Sidebar Navigation Active State */
 .sidebar-link.active {
-    background-color: #ecfdf5; /* green-50 */
+    background-color: #2bb574; /* green-50 */
     color: #059669; /* green-600 */
     font-weight: 600;
 }

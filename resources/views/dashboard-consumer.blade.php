@@ -7,6 +7,14 @@
     <link rel="icon" href="{{ secure_asset('fav.png') }}" type="image/png">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+     <!-- Leaflet GeoSearch plugin (for search bar) -->
+      <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch@3.1.0/dist/geosearch.css" />
+      <script src="https://unpkg.com/leaflet-geosearch@3.1.0/dist/bundle.min.js"></script>
+
     <link rel="stylesheet" href="{{ secure_asset('css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -22,7 +30,7 @@
                     <span class="text-xl font-bold text-gray-900">Etaka</span>
                 </a>
             </div>
-            <nav id="sidebar-nav" class="flex-1 px-4 py-4 space-y-2">
+            <nav id="sidebar-nav" class="flex-1 px-4 py-4 space-y-2" >
                 <!-- Navigation generated dynamically -->
             </nav>
             <div class="px-6 py-4 border-t border-gray-200">

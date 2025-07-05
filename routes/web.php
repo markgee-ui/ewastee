@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\EwasteRequestController;
 use App\Http\Controllers\MpesaController;
 use App\Http\Controllers\RewardController;
@@ -20,6 +21,52 @@ Route::get('/login', fn () => view('auth.login'))->name('login');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/forgot-password', function () {
+    return view('auth.login'); // since forgot form is embedded inside login
+})->middleware('guest')->name('password.request');
+
+Route::post('/forgot-password', function (Request $request) {
+    $request->validate(['email' => 'required|email']);
+
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
+
+    return response()->json(['status' => __($status)], $status === Password::RESET_LINK_SENT ? 200 : 422);
+})->middleware('guest')->name('password.email');
+
+Route::get('/reset-password/{token}', function ($token, Illuminate\Http\Request $request) {
+    $email = $request->query('email');
+    return redirect("/login?reset=true&token=$token&email=$email");
+})->middleware('guest')->name('password.reset');
+
+
+Route::post('/reset-password', function (Illuminate\Http\Request $request) {
+    $request->validate([
+        'token' => 'required',
+        'email' => 'required|email',
+        'password' => 'required|confirmed|min:6',
+    ]);
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($user, $password) {
+            $user->forceFill([
+                'password' => bcrypt($password)
+            ])->save();
+        }
+    );
+
+    if ($status === Password::PASSWORD_RESET) {
+        return response()->json(['message' => __($status)], 200);
+    }
+
+    return response()->json([
+        'message' => 'Password reset failed.',
+        'errors' => ['email' => [__($status)]]
+    ], 422);
+});
+
 
 // Authenticated Web Routes
 Route::middleware('auth')->group(function () {
@@ -144,3 +191,7 @@ Route::post('/chatbot/message', [ChatbotController::class, 'handle']);
 Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
 Route::post('/mpesa/callback', [PaymentController::class, 'mpesaCallback']);
 Route::get('/api/payment/status/{requestId}', [PaymentController::class, 'checkPaymentStatus']);
+
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});

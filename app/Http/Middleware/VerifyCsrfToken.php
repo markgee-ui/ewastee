@@ -16,8 +16,8 @@ class VerifyCsrfToken extends Middleware
      */
    protected $except = [
     '/api/*',      // All API routes excluded
-    '/login',      // AJAX login POST
-    '/register',   // Add this line to fix your registration 419s
+   // '/login',      // AJAX login POST
+   //'/register',   // Add this line to fix your registration 419s
     '/logout',     // Optional if using AJAX for logout
     '/mpesa/*',    // Mpesa callbacks
 ];

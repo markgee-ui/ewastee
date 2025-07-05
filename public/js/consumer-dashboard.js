@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.getElementById('main-content');
     const pageTitle = document.getElementById('page-title');
     
-      
+
    function generateSidebarNav() {
     const sidebarNav = document.getElementById('sidebar-nav');
     sidebarNav.innerHTML = `
@@ -18,8 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <a href="#" id="nav-my-requests" class="flex items-center space-x-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-green-50">
             <i data-lucide="list-checks" class="w-5 h-5"></i>
-            <span>My Requests</span>
+            <span>My Requests <span id="request-count" class="ml-1 inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-semibold hidden">(0)</span></span>
         </a>
+
         <a href="#" id="nav-submit-request" class="flex items-center space-x-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-green-50">
             <i data-lucide="plus-square" class="w-5 h-5"></i>
             <span>Submit Request</span>
@@ -33,59 +34,85 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>Profile</span>
         </a>
     `;
+     fetchConsumerRequests(false, true); // Don’t show notifications, but update sidebar count
 
     // Re-initialize Lucide icons after updating the DOM
     lucide.createIcons();
 }
    function setPage(title, content) {
-    // Assuming you have a main content element
-    const mainContent = document.getElementById('main-content'); // or whatever your main content element ID is
+    //  main content element
+    const mainContent = document.getElementById('main-content'); 
     if (mainContent) {
         mainContent.innerHTML = content;
     }
     
-    // Optional: Update page title or breadcrumb
-    document.title = title; // or update a breadcrumb element
+    
+    document.title = title;
 }
+function setActiveNav(linkId) {
+    const allLinks = document.querySelectorAll('#sidebar-nav a');
+    allLinks.forEach(link => {
+        link.classList.remove('bg-green-100', 'text-green-800', 'font-semibold');
+    });
+
+    const activeLink = document.getElementById(linkId);
+    if (activeLink) {
+        activeLink.classList.add('bg-green-100', 'text-green-800', 'font-semibold');
+    }
+}
+
 //       
     function attachNavEvents() {
         document.getElementById('nav-overview').addEventListener('click', e => {
             e.preventDefault();
+            setActiveNav('nav-overview');
             pageTitle.textContent = 'Overview';
             renderOverview();
         });
 
         document.getElementById('nav-my-requests').addEventListener('click', e => {
             e.preventDefault();
+            setActiveNav('nav-my-requests');
             pageTitle.textContent = 'My Requests';
             renderMyRequests();
         });
 
         document.getElementById('nav-submit-request').addEventListener('click', e => {
             e.preventDefault();
+            setActiveNav('nav-submit-request');
             pageTitle.textContent = 'Submit Request';
             renderSubmitRequestForm();
         });
 
         document.getElementById('nav-rewards').addEventListener('click', e => {
             e.preventDefault();
+            setActiveNav('nav-rewards');
             pageTitle.textContent = 'Rewards';
             renderRewards();
         });
 
         document.getElementById('nav-profile').addEventListener('click', e => {
             e.preventDefault();
+            setActiveNav('nav-profile');
             pageTitle.textContent = 'Profile';
             renderProfile();
         });
     }
 
-   function fetchConsumerRequests(showNotification = true) {
+   function fetchConsumerRequests(showNotification = true, updateSidebarCount = false) {
     return fetch(`${apiBase}/requests`)
         .then(res => res.json())
         .then(data => {
             const requests = data.requests || [];
             
+
+            if (updateSidebarCount) {
+                const countBadge = document.getElementById('request-count');
+                if (countBadge) {
+                    countBadge.textContent = `(${requests.length})`;
+                    countBadge.classList.remove('hidden');
+                }
+            }
             if (showNotification) {
                 const newCompletions = requests.filter(r => 
                     r.status === 'completed' && !previousCompletedRequestIds.has(r.id)
@@ -165,6 +192,8 @@ function pollPaymentStatus(requestId) {
         }
     }, 3000);
 }
+fetchConsumerRequests(false, true); // Don’t show notifications, but update sidebar count
+
 
 //function to render the overview section
    
@@ -189,7 +218,7 @@ function pollPaymentStatus(requestId) {
             const rewardPoints = rewards.length ? rewards[0].points : 0;
             let html = `
                 <div class="space-y-6">
-                    <div class="text-2xl font-bold text-gray-800">Welcome back, ${user.name}!</div>
+                    <div class="text-2xl font-bold text-gray-800">Welcome back, ${user.name} 👋!</div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="p-4 bg-white rounded shadow border text-center">
                             <div class="text-blue-500 text-lg">${total}</div>
@@ -431,12 +460,14 @@ function renderMyRequests() {
                         placeholder="e.g., 5">
                 </div>
 
-                <div>
-                    <label for="pickup_location" class="block text-sm font-medium text-gray-700">Pickup Location</label>
-                    <input type="text" id="pickup_location" name="location" required 
-                        class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500" 
-                        placeholder="e.g., Westlands, Nairobi">
+              <div>
+                  <label for="pickup_location" class="block text-sm font-medium text-gray-700">Pickup Location</label>
+                  <input type="text" id="pickup_location" name="location"
+                     class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
+                      placeholder="Search or click on map below to set location" required>
+                     <div id="map" class="mt-4 h-64 rounded-lg border border-gray-300"></div>
                 </div>
+
 
                 <div>
                     <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
@@ -455,6 +486,56 @@ function renderMyRequests() {
             </form>
         </div>
     `;
+    // Wait for DOM to load
+setTimeout(() => {
+    const map = L.map('map').setView([-1.286389, 36.817223], 12); // Default to Nairobi
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Marker to show selected location
+    let marker = L.marker(map.getCenter(), { draggable: true }).addTo(map);
+
+    // Reverse geocoding on map click
+    async function updateLocation(latlng) {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`);
+        const data = await res.json();
+        document.getElementById('pickup_location').value = data.display_name || `${latlng.lat}, ${latlng.lng}`;
+    }
+
+    // Click on map to select location
+    map.on('click', function (e) {
+        marker.setLatLng(e.latlng);
+        updateLocation(e.latlng);
+    });
+
+    // Drag marker to update address
+    marker.on('dragend', function (e) {
+        updateLocation(marker.getLatLng());
+    });
+
+    // Add search control
+    const search = new window.GeoSearch.GeoSearchControl({
+        provider: new window.GeoSearch.OpenStreetMapProvider(),
+        style: 'bar',
+        showMarker: false,
+        autoClose: true,
+        retainZoomLevel: false,
+        animateZoom: true
+    });
+    map.addControl(search);
+
+    // When a location is selected via search
+    map.on('geosearch/showlocation', function (result) {
+           const latlng = L.latLng(result.location.y, result.location.x);
+    marker.setLatLng(latlng);
+    updateLocation(latlng);
+    });
+
+}, 100); // Delay to ensure map div is rendered
+
 
     document.getElementById('request-form').addEventListener('submit', function (e) {
     e.preventDefault();

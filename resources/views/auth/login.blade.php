@@ -38,6 +38,10 @@
                     <div>
                         <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
                         <input type="password" id="login-password" name="password" required class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" placeholder="••••••••">
+                        <div class="text-right mt-1">
+                            <a href="/forgot-password" class="text-sm text-green-600 hover:underline">Forgot Password?</a>
+                        </div>
+
                     </div>
                     <div id="login-error" class="text-red-500 text-sm hidden"></div>
                     <div>
@@ -78,6 +82,56 @@
                         <button type="submit" class="w-full bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition shadow-sm">Create Account</button>
                     </div>
                 </form>
+                <!-- Forgot Password Form -->
+<form id="forgot-password-form" class="space-y-6 hidden">
+    @csrf
+    <div>
+        <label for="forgot-email" class="block text-sm font-medium text-gray-700">Email</label>
+        <input type="email" id="forgot-email" name="email" required
+               class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+               placeholder="Enter your email">
+    </div>
+    <div id="forgot-error" class="text-red-500 text-sm hidden"></div>
+    <div id="forgot-success" class="text-green-600 text-sm hidden"></div>
+    <div>
+        <button type="submit" class="w-full bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition shadow-sm">Send Reset Link</button>
+    </div>
+    <div class="text-sm text-gray-600 text-center">
+        <a href="#" id="back-to-login" class="hover:underline text-green-600">Back to Login</a>
+    </div>
+</form>
+<!-- Reset Password Form -->
+<form id="reset-password-form" class="space-y-6 hidden" method="POST">
+    @csrf
+    <input type="hidden" id="reset-token" name="token">
+    <input type="hidden" id="reset-email" name="email">
+
+    <div>
+        <label for="reset-password" class="block text-sm font-medium text-gray-700">New Password</label>
+        <input type="password" id="reset-password" name="password" required
+               class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+               placeholder="Enter new password">
+    </div>
+
+    <div>
+        <label for="reset-password-confirm" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+        <input type="password" id="reset-password-confirm" name="password_confirmation" required
+               class="mt-1 block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+               placeholder="Confirm new password">
+    </div>
+
+    <div id="reset-error" class="text-red-500 text-sm hidden"></div>
+    <div id="reset-success" class="text-green-600 text-sm hidden"></div>
+
+    <div>
+        <button type="submit"
+                class="w-full bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition shadow-sm">
+            Reset Password
+        </button>
+    </div>
+</form>
+
+
 
             </div>
         </div>
