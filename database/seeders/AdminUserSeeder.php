@@ -17,8 +17,8 @@ class AdminUserSeeder extends Seeder
             ['email' => 'admin@etaka.com'], // Unique identifier (prevents duplicate creation)
             [
                 'name' => 'Administrator',
-                'email' => 'admin@etaka.com', // ✅ Explicit (recommended for clarity)
-                'password' => Hash::make('securepassword'), // ✅ Hash password
+                'email' => 'admin@etaka.com', // Explicit (recommended for clarity)
+                'password' => Hash::make('securepassword'), // Hash password
                 'role' => 'admin'
             ]
         );

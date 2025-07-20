@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use App\Models\EwasteRequest;
+use App\Models\Payment;
 
 class PaymentController extends Controller
 {
@@ -68,18 +70,26 @@ class PaymentController extends Controller
             'AccountReference' => $requestId,
             'TransactionDesc' => 'Payment for E-taka Job',
         ]);
+        
 
-        if ($response->successful()) {
-            return response()->json([
-                'message' => 'M-Pesa STK push sent successfully.',
-                'response' => $response->json()
-            ]);
-        }
+       if ($response->successful()) {
+    $data = $response->json();
 
-        return response()->json([
-            'message' => 'Failed to initiate M-Pesa STK push.',
-            'error' => $response->json()
-        ], 500);
+    \App\Models\Payment::create([
+        'request_id' => $requestId,
+        'phone' => $phone,
+        'mpesa_receipt' => null,
+        'amount' => $amount,
+        'status' => 'Pending',
+        'checkout_request_id' => $data['CheckoutRequestID'] ?? null,
+    ]);
+
+    return response()->json([
+        'message' => 'M-Pesa STK push sent successfully.',
+        'response' => $data
+    ]);
+}
+
     }
 
     /**
@@ -157,16 +167,24 @@ class PaymentController extends Controller
     return response()->json(['message' => 'Callback processed'], 200);
 }
 
+
+
 public function checkPaymentStatus($requestId)
 {
-    $payment = \App\Models\Payment::where('request_id', $requestId)->first();
+    $payment = Payment::where('request_id', $requestId)->first();
 
-    if ($payment && $payment->status === 'Completed') {
-        return response()->json(['paid' => true]);
+    if (!$payment) {
+        return response()->json(['status' => 'not_found'], 404);
     }
 
-    return response()->json(['paid' => false]);
+    return response()->json([
+        'status' => $payment->status,
+        'amount' => $payment->amount,
+    ]);
 }
+
+
+
 
 
 }

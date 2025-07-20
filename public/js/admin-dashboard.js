@@ -401,7 +401,54 @@ window.deleteRequest = function(id) {
     }
 };
 
-    function renderPayments() { setPage('Payments', '<div>Payments & Rewards Here</div>'); }
+   function renderPayments() {
+    setPage('Payments', '<div id="payments-section" class="p-4">Loading payments...</div>');
+
+    fetch('/api/admin/payments')
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                document.getElementById('payments-section').innerHTML = '<p>No payment records found.</p>';
+                return;
+            }
+
+            const table = `
+                <table class="min-w-full bg-white border border-gray-300 text-sm">
+                    <thead>
+                        <tr class="bg-gray-200 text-left">
+                            <th class="py-2 px-4 border-b">#</th>
+                            <th class="py-2 px-4 border-b">Phone</th>
+                            <th class="py-2 px-4 border-b">Amount</th>
+                            <th class="py-2 px-4 border-b">Status</th>
+                            <th class="py-2 px-4 border-b">MPESA Code</th>
+                            <th class="py-2 px-4 border-b">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map((payment, index) => `
+                            <tr class="hover:bg-gray-100">
+                                <td class="py-2 px-4 border-b">${index + 1}</td>
+                                <td class="py-2 px-4 border-b">${payment.phone}</td>
+                                <td class="py-2 px-4 border-b">KES ${payment.amount}</td>
+                                <td class="py-2 px-4 border-b capitalize">${payment.status}</td>
+                                <td class="py-2 px-4 border-b">${payment.mpesa_receipt ?? 'N/A'}</td>
+                                <td class="py-2 px-4 border-b">${new Date(payment.created_at).toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('payments-section').innerHTML = table;
+        })
+        .catch(err => {
+            console.error('Error loading payments:', err);
+            document.getElementById('payments-section').innerHTML = '<p class="text-red-600">Failed to load payment data.</p>';
+        });
+}
+
+
+
     function renderNotifications() { setPage('Notifications', '<div>Send Notifications</div>'); }
     //function renderSettings() { setPage('Settings', '<div>Settings Page</div>'); }
     function renderSettings() {

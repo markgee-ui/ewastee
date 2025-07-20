@@ -288,12 +288,12 @@ fetchConsumerRequests(false, true); // Don’t show notifications, but update si
 
                 <button id="airtime-button" class="flex flex-col items-center justify-center p-6 bg-yellow-50 border border-yellow-200 rounded-xl hover:bg-yellow-100 transition">
                     <i data-lucide="phone-call" class="w-8 h-8 text-yellow-600 mb-2"></i>
-                    <span class="text-yellow-800 font-semibold">Airtime</span>
+                    <span class="text-yellow-800 font-semibold">Airtel Money</span>
                 </button>
 
                 <button id="card-button" class="flex flex-col items-center justify-center p-6 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition">
                     <i data-lucide="credit-card" class="w-8 h-8 text-blue-600 mb-2"></i>
-                    <span class="text-blue-800 font-semibold">Card</span>
+                    <span class="text-blue-800 font-semibold">Cash</span>
                 </button>
             </div>
 
@@ -342,7 +342,7 @@ fetchConsumerRequests(false, true); // Don’t show notifications, but update si
     });
 
     document.getElementById("card-button").addEventListener("click", () => {
-        alert("Card selected. Coming soon...");
+        alert("Proceed to Pay Cash, Usitoe coins!!");
     });
 
     document.getElementById("back-button").addEventListener("click", () => {
@@ -593,7 +593,7 @@ function renderRewards() {
             <div class="text-center max-w-md mx-auto bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-4">
                 <i data-lucide="award" class="w-16 h-16 text-yellow-400 mx-auto"></i>
                 <h2 class="text-2xl font-bold text-gray-800">My Rewards</h2>
-                <p class="text-gray-600">You have <span class="font-semibold text-green-600">${points}</span> reward points.</p>
+                <p class="text-gray-600">You have <span class="font-semibold text-green-600">${points}</span> Etaka points.</p>
                 <p class="text-lg font-medium text-gray-800">Equivalent to <span class="text-green-600 font-bold">KES ${amountKES}</span></p>
                 
                 <button id="redeem-button" class="w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition">Redeem Rewards</button>

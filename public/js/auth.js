@@ -100,6 +100,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         return response;
     }
 
+    // Enhanced error message handler
+    function getErrorMessage(response, data) {
+        // Handle authentication errors specifically
+        if (response.status === 401) {
+            return data.message || 'Invalid email or password';
+        }
+        if (response.status === 422) {
+            // Handle validation errors
+            if (data.errors) {
+                const firstError = Object.values(data.errors)[0];
+                return Array.isArray(firstError) ? firstError[0] : firstError;
+            }
+            return data.message || 'Validation failed';
+        }
+        if (response.status === 419) {
+            return 'Session expired. Please try again.';
+        }
+        return data.message || `Request failed (${response.status})`;
+    }
+
     function switchTab(activeTab) {
         if (activeTab === 'login') {
             loginForm.classList.remove('hidden');
@@ -153,7 +173,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (!response.ok) {
-                throw new Error(data.message || `Login failed (${response.status})`);
+                throw new Error(getErrorMessage(response, data));
             }
 
             window.location.replace(data.redirect || '/dashboard');
@@ -185,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || `Registration failed (${response.status})`);
+                throw new Error(getErrorMessage(response, data));
             }
 
             registerSuccess.textContent = data.message;
@@ -234,7 +254,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to send reset email.');
+                throw new Error(getErrorMessage(response, data));
             }
 
             forgotSuccess.textContent = data.status || 'Reset link sent!';
@@ -267,7 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || 'Password reset failed.');
+                throw new Error(getErrorMessage(response, data));
             }
 
             resetSuccess.textContent = data.message || 'Password reset successfully.';

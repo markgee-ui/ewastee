@@ -15,6 +15,9 @@ use App\Http\Controllers\AdminRequestController;
 use App\Http\Controllers\AdminOverviewController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\PaymentController;
+use App\Models\EwasteRequest;
+use App\Models\Payment;
+use App\Http\Controllers\AdminController;
 // Public Web Routes
 Route::get('/', fn () => view('home'))->name('home');
 Route::get('/login', fn () => view('auth.login'))->name('login');
@@ -109,13 +112,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/requests', [EwasteRequestController::class, 'store']);
 
     // Rewards
-    Route::get('/api/rewards', function (Request $request) {
-        return response()->json([
-            'rewards' => [
-                ['user_id' => $request->user()->id, 'points' => 100] // Replace with real data
+ Route::get('/api/rewards', function (Request $request) {
+    $user = Auth::user();
+
+    return response()->json([
+        'rewards' => [
+            [
+                'user_id' => $user->id,
+                'points' => $user->rewards, // actual value from DB
             ]
-        ]);
-    });
+        ]
+    ]);
+});
     Route::post('/api/rewards/redeem', [RewardController::class, 'redeem']);
 
     // Recycler Endpoints
@@ -126,20 +134,42 @@ Route::middleware('auth')->group(function () {
         Route::post('/jobs/{id}/complete', [RecyclerController::class, 'markComplete']);
         Route::post('/jobs/{id}/in-progress', [RecyclerController::class, 'markInProgress']);
         Route::get('/payments', function (Request $request) {
-            return response()->json([
-                'total_earned' => 2750, // Example data
-                'completed_jobs' => [
-                    ['item_description' => 'Laptop Battery'],
-                    ['item_description' => 'Old Mobile Phone'],
-                ]
-            ]);
-        });
+    $user = Auth::user();
+
+    // Get completed jobs for this recycler
+    $completedJobs = EwasteRequest::where('recycler_id', $user->id)
+        ->where('status', 'completed')
+        ->get();
+
+    $requestIds = $completedJobs->pluck('id');
+
+    // Get successful payments related to these jobs
+    $payments = Payment::whereIn('request_id', $requestIds)
+        ->where('status', 'Completed')
+        ->get();
+
+    $totalEarned = $payments->sum('amount');
+
+    // Format job descriptions
+    $jobDescriptions = $completedJobs->map(function ($job) {
+        return [
+            'item_description' => $job->description,
+        ];
+    });
+
+    return response()->json([
+        'total_earned' => $totalEarned,
+        'completed_jobs' => $jobDescriptions,
+    ]);
+});
     });
 });
 
 // Mpesa (No auth because these are callbacks)
 Route::post('/mpesa/stkpush', [MpesaController::class, 'stkPush']);
+Route::post('/mpesa/callback', [PaymentController::class, 'mpesaCallback'])->name('mpesa.callback');
 
+Route::get('/api/payments/{requestId}/status', [PaymentController::class, 'checkPaymentStatus']);
 
 
 // for debugging purposes, you can add a route to check session and CSRF token
@@ -161,6 +191,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 Route::get('/api/admin/users', function () {
     return \App\Models\User::select('id', 'name', 'email', 'role', 'created_at')->get();
 });
+Route::get('/admin/payments', [AdminController::class, 'getPayments']);
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/api/users', fn () => \App\Models\User::all());
@@ -195,3 +226,10 @@ Route::get('/api/payment/status/{requestId}', [PaymentController::class, 'checkP
 Route::get('/csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
 });
+
+//Route::get('/change-admin-password', function () {
+    //$user = User::where('email', 'admin@etaka.com')->first();
+ //   $user->password = Hash::make('newpassword123');
+   // $user->save();
+   // return "Password updated!";
+//});

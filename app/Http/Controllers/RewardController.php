@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class RewardController extends Controller
 {
@@ -93,6 +94,20 @@ class RewardController extends Controller
         $phone = preg_replace('/^0/', '254', $phone);
         return preg_replace('/^\+/', '', $phone);
     }
+    // RewardController.php
+public function getConsumerRewards()
+{
+    $user = Auth::user();
+    
+    if ($user->role !== 'consumer') {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    return response()->json([
+        'points' => $user->rewards ?? 0,
+    ]);
+}
+
 }
 // This controller handles the redemption of rewards for users.
 // It checks if the user has enough points, calculates the payout amount,

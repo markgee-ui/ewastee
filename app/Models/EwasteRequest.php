@@ -23,11 +23,16 @@ class EwasteRequest extends Model
     {
         return $this->belongsTo(User::class, 'consumer_id');
     }
+    
 
     //  Relationship to get the recycler (user who accepted the job)
     public function recycler()
     {
         return $this->belongsTo(User::class, 'recycler_id');
     }
+    public function payment()
+{
+    return $this->hasOne(Payment::class, 'request_id');
+}
 }
 

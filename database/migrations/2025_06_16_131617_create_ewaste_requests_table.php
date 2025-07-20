@@ -15,7 +15,7 @@ return new class extends Migration
             $table->integer('quantity');
             $table->string('location');
             $table->text('description')->nullable();
-            $table->enum('status', ['pending', 'accepted', 'completed'])->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'in_progress', 'completed'])->default('pending');
             $table->timestamps();
         });
     }

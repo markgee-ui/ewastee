@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 use App\Models\EwasteRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use App\Models\Payment;
+use App\Models\User;
 
 class EwasteRequestController extends Controller
 {
@@ -43,7 +46,7 @@ class EwasteRequestController extends Controller
  public function updateStatus(Request $request, $id)
 {
     $request->validate([
-        'status' => 'required|in:pending,accepted,completed',
+        'status' => 'required|in:pending,accepted,in_progress,completed',
     ]);
 
     $ewasteRequest = EwasteRequest::findOrFail($id);
@@ -57,7 +60,7 @@ class EwasteRequestController extends Controller
     $ewasteRequest->save();
 
     $broadcast = false;
-
+// Check if the status is "completed" and update the consumer's rewards
     if ($request->status === 'completed') {
         $consumer = $ewasteRequest->consumer; // Assuming relationship: consumer()
         if ($consumer) {
@@ -66,13 +69,17 @@ class EwasteRequestController extends Controller
             $broadcast = true;
         }
     }
-
+// Broadcast notification to the consumer
     return response()->json([
         'message' => 'Request status updated successfully.',
         'broadcast_notification' => $broadcast,
         'consumer_id' => $ewasteRequest->consumer_id,
         'request_id' => $ewasteRequest->id,
     ]);
+}
+public function payment()
+{
+    return $this->hasOne(Payment::class, 'request_id');
 }
 
 }

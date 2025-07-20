@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminRequestController;
 use App\Http\Controllers\AdminOverviewController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\AdminController;
 // AUTHENTICATED API ROUTES
 Route::middleware('auth')->group(function () {
     // Profile Endpoints
@@ -90,3 +91,6 @@ Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
 Route::post('/mpesa/callback', [PaymentController::class, 'mpesaCallback']);
 Route::get('/api/payment/status/{requestId}', [PaymentController::class, 'checkPaymentStatus']);
 
+Route::get('/payments/{requestId}/status', [PaymentController::class, 'checkPaymentStatus']);
+
+Route::get('/admin/payments', [AdminController::class, 'getPayments']);

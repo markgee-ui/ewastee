@@ -6,6 +6,7 @@ use App\Models\EwasteRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Models\Payment;
 
 class RecyclerController extends Controller
 {
@@ -105,21 +106,52 @@ class RecyclerController extends Controller
     }
 
     // GET /api/recycler/payments
-    public function payments()
+    public function payments(Request $request)
     {
-        Log::info('Fetching recycler payments.', ['user_id' => auth()->id()]);
+        $recyclerId = auth()->id();
 
-        $completedJobs = EwasteRequest::where('recycler_id', Auth::id())
-            ->where('status', 'completed')
-            ->get();
+        // Get payments for jobs assigned to this recycler
+        $payments = Payment::whereHas('request', function ($q) use ($recyclerId) {
+            $q->where('recycler_id', $recyclerId);
+        })->with(['request' => function ($q) {
+            $q->select('id', 'type', 'quantity', 'location', 'created_at');
+        }])->get([
+            'id',
+            'request_id', 
+            'phone', 
+            'mpesa_receipt', 
+            'amount', 
+            'status', 
+            'checkout_request_id',
+            'created_at',
+            'updated_at'
+        ]);
 
-        $totalEarned = $completedJobs->count() * 50;
+        $totalEarned = $payments->sum('amount');
 
-        Log::info('Recycler payments calculated.', ['total_earned' => $totalEarned, 'completed_jobs_count' => $completedJobs->count()]);
+        // Format the payments data for the frontend
+        $formattedPayments = $payments->map(function ($payment) {
+            return [
+                'id' => $payment->id,
+                'request_id' => $payment->request_id,
+                'phone' => $payment->phone,
+                'mpesa_receipt' => $payment->mpesa_receipt,
+                'amount' => $payment->amount,
+                'status' => $payment->status,
+                'checkout_request_id' => $payment->checkout_request_id,
+                'created_at' => $payment->created_at,
+                'updated_at' => $payment->updated_at,
+                'item_description' => $payment->request ? $payment->request->type : 'N/A', // Using request type as description
+                'item_quantity' => $payment->request ? $payment->request->quantity : 'N/A',
+                'item_location' => $payment->request ? $payment->request->location : 'N/A',
+            ];
+        });
+
+        Log::info('Payments retrieved for recycler.', ['recycler_id' => $recyclerId, 'count' => $payments->count()]);
 
         return response()->json([
             'total_earned' => $totalEarned,
-            'completed_jobs' => $completedJobs
+            'payments' => $formattedPayments,
         ]);
     }
 }
